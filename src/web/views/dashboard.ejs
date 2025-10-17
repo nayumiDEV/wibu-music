@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Discord Music Bot</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">🎵 Discord Music Bot</div>
+    <div class="nav-user">
+      <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="Avatar">
+      <span><%= user.username %></span>
+      <a href="/logout" class="btn btn-small">Đăng xuất</a>
+    </div>
+  </nav>
+
+  <div class="container dashboard">
+    <h1>Chọn Server</h1>
+    <p class="subtitle">Chọn một server để bắt đầu điều khiển bot</p>
+
+    <% if (guilds.length === 0) { %>
+      <div class="empty-state">
+        <p>Không tìm thấy server chung nào.</p>
+        <p>Hãy mời bot vào server của bạn!</p>
+      </div>
+    <% } else { %>
+      <div class="guilds-grid">
+        <% guilds.forEach(guild => { %>
+          <a href="/server/<%= guild.id %>" class="guild-card">
+            <% if (guild.icon) { %>
+              <img src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.png" alt="<%= guild.name %>">
+            <% } else { %>
+              <div class="guild-icon-placeholder"><%= guild.name.charAt(0) %></div>
+            <% } %>
+            <h3><%= guild.name %></h3>
+          </a>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+</body>
+</html>

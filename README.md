@@ -16,6 +16,11 @@ Bot Discord đa nền tảng để phát nhạc từ YouTube, Spotify, SoundClou
 - 🔀 Shuffle và loop
 - 🎚️ Điều chỉnh âm lượng
 - 📊 Hiển thị bài hát đang phát
+- 🌐 **Web Dashboard** - Giao diện web để điều khiển bot
+  - Đăng nhập bằng Discord OAuth2
+  - Điều khiển phát nhạc từ trình duyệt
+  - Real-time updates qua WebSocket
+  - Giao diện responsive, thân thiện
 
 ## Yêu cầu
 
@@ -41,11 +46,17 @@ npm install
 cp .env.example .env
 ```
 
-4. Thêm Discord bot token vào file `.env`:
+4. Thêm thông tin Discord bot vào file `.env`:
 ```
 DISCORD_TOKEN=your_discord_bot_token_here
 DISCORD_CLIENT_ID=your_discord_client_id_here
+DISCORD_CLIENT_SECRET=your_discord_client_secret_here
+SESSION_SECRET=your_random_session_secret_here
+WEB_PORT=3000
+CALLBACK_URL=http://localhost:3000/auth/discord/callback
 ```
+
+> **Lưu ý:** Để sử dụng Web Dashboard, xem hướng dẫn chi tiết trong [WEB_SETUP.md](WEB_SETUP.md)
 
 ## Cách tạo Discord Bot
 
@@ -104,6 +115,27 @@ npm run dev
 
 ### Khác
 - `/lyrics [tên bài]` - Hiển thị lời bài hát
+
+## 🌐 Web Dashboard
+
+Bot đi kèm với giao diện web dashboard hoàn chỉnh!
+
+### Truy cập Dashboard
+
+Sau khi chạy bot, truy cập: **http://localhost:3000**
+
+### Tính năng Dashboard
+
+- 🔐 Đăng nhập an toàn với Discord OAuth2
+- 🎵 Điều khiển phát nhạc real-time
+- 📝 Quản lý queue trực quan
+- 🔊 Điều chỉnh âm lượng bằng slider
+- ⚡ Cập nhật tự động qua WebSocket
+- 📱 Giao diện responsive cho mobile
+
+### Hướng dẫn cài đặt
+
+Xem hướng dẫn chi tiết trong [WEB_SETUP.md](WEB_SETUP.md)
 
 ## Hỗ trợ
 

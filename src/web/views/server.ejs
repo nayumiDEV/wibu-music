@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= guild.name %> - Discord Music Bot</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">
+      <a href="/dashboard">← Dashboard</a>
+    </div>
+    <div class="nav-center">
+      <% if (guild.icon) { %>
+        <img src="<%= guild.icon %>" alt="<%= guild.name %>" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px;">
+      <% } %>
+      <span><%= guild.name %></span>
+    </div>
+    <div class="nav-user">
+      <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="Avatar">
+      <span><%= user.username %></span>
+    </div>
+  </nav>
+
+  <div class="container player-container">
+    <div class="player-main">
+      <div class="now-playing">
+        <div id="albumArt" class="album-art">
+          <span class="placeholder-icon">🎵</span>
+        </div>
+        <div class="track-info">
+          <h2 id="trackTitle">Chưa có bài hát</h2>
+          <p id="trackAuthor">-</p>
+          <p id="trackDuration">0:00</p>
+        </div>
+      </div>
+
+      <div class="player-controls">
+        <div class="control-buttons">
+          <button id="btnPrev" class="btn-control" disabled>⏮️</button>
+          <button id="btnPlayPause" class="btn-control btn-play">▶️</button>
+          <button id="btnNext" class="btn-control">⏭️</button>
+          <button id="btnStop" class="btn-control">⏹️</button>
+        </div>
+
+        <div class="volume-control">
+          <span>🔊</span>
+          <input type="range" id="volumeSlider" min="0" max="100" value="50">
+          <span id="volumeValue">50%</span>
+        </div>
+      </div>
+
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Nhập link hoặc tên bài hát...">
+        <button id="btnSearch" class="btn btn-primary">Phát nhạc</button>
+      </div>
+    </div>
+
+    <div class="queue-panel">
+      <h3>📝 Hàng đợi</h3>
+      <div id="queueList" class="queue-list">
+        <p class="empty-queue">Hàng đợi trống</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const guildId = '<%= guild.id %>';
+    const socket = io();
+    let isPlaying = false;
+    let isPaused = false;
+
+    socket.emit('subscribe', guildId);
+
+    async function fetchQueue() {
+      try {
+        const res = await fetch(`/api/queue/${guildId}`);
+        const data = await res.json();
+        updatePlayer(data);
+      } catch (error) {
+        console.error('Error fetching queue:', error);
+      }
+    }
+
+    function updatePlayer(data) {
+      isPlaying = data.playing;
+      isPaused = data.paused;
+
+      const btnPlayPause = document.getElementById('btnPlayPause');
+      
+      if (data.current) {
+        document.getElementById('trackTitle').textContent = data.current.title;
+        document.getElementById('trackAuthor').textContent = data.current.author;
+        document.getElementById('trackDuration').textContent = data.current.duration;
+        
+        const albumArt = document.getElementById('albumArt');
+        albumArt.innerHTML = `<img src="${data.current.thumbnail}" alt="Album Art">`;
+
+        btnPlayPause.textContent = isPaused ? '▶️' : '⏸️';
+        btnPlayPause.disabled = false;
+      } else {
+        document.getElementById('trackTitle').textContent = 'Chưa có bài hát';
+        document.getElementById('trackAuthor').textContent = '-';
+        document.getElementById('trackDuration').textContent = '0:00';
+        
+        const albumArt = document.getElementById('albumArt');
+        albumArt.innerHTML = '<span class="placeholder-icon">🎵</span>';
+
+        btnPlayPause.textContent = '▶️';
+        btnPlayPause.disabled = true;
+      }
+
+      const queueList = document.getElementById('queueList');
+      if (data.queue && data.queue.length > 0) {
+        queueList.innerHTML = data.queue.map((track, i) => `
+          <div class="queue-item">
+            <img src="${track.thumbnail}" alt="${track.title}">
+            <div class="queue-item-info">
+              <p class="queue-item-title">${track.title}</p>
+              <p class="queue-item-author">${track.author}</p>
+            </div>
+            <span class="queue-item-duration">${track.duration}</span>
+          </div>
+        `).join('');
+      } else {
+        queueList.innerHTML = '<p class="empty-queue">Hàng đợi trống</p>';
+      }
+
+      if (data.volume !== undefined) {
+        document.getElementById('volumeSlider').value = data.volume;
+        document.getElementById('volumeValue').textContent = data.volume + '%';
+      }
+    }
+
+    document.getElementById('btnPlayPause').addEventListener('click', async () => {
+      const endpoint = isPaused ? 'resume' : 'pause';
+      try {
+        await fetch(`/api/${endpoint}/${guildId}`, { method: 'POST' });
+        fetchQueue();
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    });
+
+    document.getElementById('btnNext').addEventListener('click', async () => {
+      try {
+        await fetch(`/api/skip/${guildId}`, { method: 'POST' });
+        fetchQueue();
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    });
+
+    document.getElementById('btnStop').addEventListener('click', async () => {
+      try {
+        await fetch(`/api/stop/${guildId}`, { method: 'POST' });
+        fetchQueue();
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    });
+
+    document.getElementById('volumeSlider').addEventListener('change', async (e) => {
+      const volume = e.target.value;
+      document.getElementById('volumeValue').textContent = volume + '%';
+      try {
+        await fetch(`/api/volume/${guildId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ volume: parseInt(volume) })
+        });
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    });
+
+    document.getElementById('btnSearch').addEventListener('click', async () => {
+      const query = document.getElementById('searchInput').value.trim();
+      if (!query) return;
+
+      try {
+        const res = await fetch(`/api/play/${guildId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query })
+        });
+
+        if (res.ok) {
+          document.getElementById('searchInput').value = '';
+          setTimeout(fetchQueue, 1000);
+        } else {
+          const data = await res.json();
+          alert('Lỗi: ' + data.error);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra!');
+      }
+    });
+
+    document.getElementById('searchInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('btnSearch').click();
+      }
+    });
+
+    socket.on('trackStart', (track) => {
+      fetchQueue();
+    });
+
+    socket.on('trackAdd', (track) => {
+      fetchQueue();
+    });
+
+    socket.on('queueEnd', () => {
+      fetchQueue();
+    });
+
+    fetchQueue();
+    setInterval(fetchQueue, 10000);
+  </script>
+</body>
+</html>

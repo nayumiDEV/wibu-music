@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { createWebServer } from './web/server.js';
 
 dotenv.config();
 
@@ -42,6 +43,8 @@ for (const file of commandFiles) {
 client.once('ready', () => {
   console.log(`✅ Bot đã sẵn sàng! Đăng nhập với tên: ${client.user.tag}`);
   console.log(`🎵 Đã kết nối đến ${client.guilds.cache.size} server(s)`);
+  
+  createWebServer(client, player);
 });
 
 client.on('interactionCreate', async (interaction) => {

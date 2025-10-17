@@ -1,5 +1,25 @@
 # Danh sách tính năng
 
+## 🌐 Web Dashboard
+
+### Giao diện web đầy đủ tính năng
+- ✅ **Đăng nhập Discord OAuth2** - An toàn và tiện lợi
+- ✅ **Điều khiển phát nhạc** - Play, pause, skip, stop từ trình duyệt
+- ✅ **Quản lý queue** - Xem và quản lý hàng đợi trực quan
+- ✅ **Real-time updates** - Cập nhật tự động qua WebSocket
+- ✅ **Responsive design** - Hoạt động tốt trên mọi thiết bị
+- ✅ **Dark theme** - Giao diện tối giống Discord
+- ✅ **Multi-server support** - Quản lý nhiều server cùng lúc
+
+### API Endpoints
+- `GET /api/queue/:guildId` - Lấy thông tin queue
+- `POST /api/play/:guildId` - Phát nhạc
+- `POST /api/pause/:guildId` - Tạm dừng
+- `POST /api/resume/:guildId` - Tiếp tục
+- `POST /api/skip/:guildId` - Bỏ qua
+- `POST /api/stop/:guildId` - Dừng
+- `POST /api/volume/:guildId` - Điều chỉnh âm lượng
+
 ## 🎵 Phát nhạc
 
 ### Nguồn hỗ trợ
