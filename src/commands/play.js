@@ -32,7 +32,8 @@ export default {
           metadata: {
             channel: interaction.channel,
             client: interaction.guild.members.me,
-            requestedBy: interaction.user
+            requestedBy: interaction.user,
+            voiceChannel: channel
           },
           volume: 50,
           leaveOnEnd: true,

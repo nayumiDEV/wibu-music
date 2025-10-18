@@ -58,6 +58,7 @@
 | `/volume <0-100>` | Điều chỉnh âm lượng | `/volume 75` |
 | `/loop <mode>` | Lặp lại (off/track/queue) | `/loop track` |
 | `/filters <filter>` | Áp dụng hiệu ứng âm thanh | `/filters bassboost` |
+| `/autoplay <on/off/toggle/status>` | Tự động phát bài hát tương tự khi queue trống | `/autoplay on` |
 
 ## 🎨 Hiệu ứng âm thanh
 

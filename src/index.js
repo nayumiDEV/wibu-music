@@ -1,11 +1,13 @@
 import { Client, GatewayIntentBits } from 'discord.js';
-import { Player } from 'discord-player';
+import { Player, QueryType } from 'discord-player';
 import { YoutubeiExtractor } from 'discord-player-youtubei';
 import dotenv from 'dotenv';
 import { readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { createWebServer } from './web/server.js';
+import { isAutoplayEnabled } from './state/autoplay.js';
+import { setLastTrack, getLastTrack } from './state/lastTrack.js';
 
 dotenv.config();
 
@@ -69,6 +71,7 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 player.events.on('playerStart', (queue, track) => {
+  setLastTrack(queue.guild.id, track);
   if (queue.metadata?.channel) {
     queue.metadata.channel.send(`▶️ Đang phát: **${track.title}** - \`${track.duration}\``).catch(console.error);
   }
@@ -80,7 +83,42 @@ player.events.on('audioTrackAdd', (queue, track) => {
   }
 });
 
-player.events.on('emptyQueue', (queue) => {
+player.events.on('emptyQueue', async (queue) => {
+  const guildId = queue.guild.id;
+  if (isAutoplayEnabled(guildId)) {
+    try {
+      const last = getLastTrack(guildId);
+      if (!last) throw new Error('No last track to base suggestions on');
+
+      const query = `${last.author || ''} ${last.title}`.trim();
+      const res = await player.search(query, { searchEngine: QueryType.YOUTUBE_SEARCH });
+      if (!res || !res.tracks || res.tracks.length === 0) throw new Error('No similar tracks found');
+
+      const next = res.tracks.find(t => t.url !== last.url && t.title !== last.title) || res.tracks[0];
+      const voiceChannel = queue.guild.members.me?.voice?.channel || queue.metadata?.voiceChannel;
+      if (!voiceChannel) throw new Error('No voice channel available for autoplay');
+
+      await player.play(voiceChannel, next.url, {
+        nodeOptions: {
+          metadata: queue.metadata,
+          volume: queue.node.volume,
+          leaveOnEnd: true,
+          leaveOnStop: true,
+          leaveOnEmpty: true,
+          leaveOnEmptyCooldown: 300000,
+          selfDeaf: true
+        }
+      });
+
+      if (queue.metadata?.channel) {
+        queue.metadata.channel.send(`🤖 Autoplay: **${next.title}**`).catch(console.error);
+      }
+      return; // don't send queue ended message
+    } catch (e) {
+      console.warn('Autoplay failed:', e.message);
+    }
+  }
+
   if (queue.metadata?.channel) {
     queue.metadata.channel.send('✅ Hàng đợi đã kết thúc!').catch(console.error);
   }

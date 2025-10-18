@@ -115,6 +115,7 @@ npm run dev
 
 ### Khác
 - `/lyrics [tên bài]` - Hiển thị lời bài hát
+- `/autoplay [on/off/toggle/status]` - Tự động phát bài hát tương tự khi hàng đợi trống
 
 ## 🌐 Web Dashboard
 

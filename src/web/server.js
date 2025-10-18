@@ -166,7 +166,8 @@ export function createWebServer(client, player) {
         nodeOptions: {
           metadata: {
             channel: guild.channels.cache.find(c => c.type === 0),
-            requestedBy: member.user
+            requestedBy: member.user,
+            voiceChannel: member.voice.channel
           }
         }
       });
